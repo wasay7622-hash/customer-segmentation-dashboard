@@ -1,0 +1,333 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:transparent}
+.dash{display:flex;min-height:600px}
+.sidebar{width:180px;flex-shrink:0;background:var(--surface-1);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:4px}
+.logo{text-align:center;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.logo-icon{font-size:28px}
+.logo-title{color:var(--text-primary);font-size:13px;font-weight:500;margin-top:4px}
+.logo-sub{color:var(--text-accent);font-size:10px;letter-spacing:1.5px}
+.nav-section{color:var(--text-muted);font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 4px 6px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);border:none;background:none;color:var(--text-secondary);font-size:12px;cursor:pointer;width:100%;text-align:left;transition:all .15s}
+.nav-btn:hover{background:var(--surface-0);color:var(--text-primary)}
+.nav-btn.active{background:var(--bg-accent);color:var(--text-accent);font-weight:500}
+.nav-btn i{font-size:15px;width:16px}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface-2)}
+.page-title{color:var(--text-primary);font-size:16px;font-weight:500}
+.page-sub{color:var(--text-secondary);font-size:11px;margin-top:2px}
+.filters{display:flex;gap:8px;align-items:center}
+.filter-select{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);font-size:11px;cursor:pointer}
+.content{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi-label{color:var(--text-secondary);font-size:10px;font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.kpi-val{color:var(--text-primary);font-size:22px;font-weight:500}
+.kpi-delta{font-size:11px;margin-top:4px}
+.delta-up{color:var(--text-success)}
+.delta-dn{color:var(--text-danger)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px}
+.chart-title{color:var(--text-primary);font-size:12px;font-weight:500;margin-bottom:10px}
+canvas{display:block}
+.seg-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.seg-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)}
+.seg-dot{width:8px;height:8px;border-radius:50%}
+.table-card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-title{color:var(--text-primary);font-size:12px;font-weight:500}
+.search-box{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface-0);color:var(--text-primary);font-size:11px;outline:none;width:160px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{padding:8px 14px;text-align:left;color:var(--text-muted);font-weight:500;font-size:10px;letter-spacing:.5px;text-transform:uppercase;background:var(--surface-0);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;color:var(--text-secondary);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface-0)}
+.badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
+.b-hv{background:#dcfce7;color:#166534}
+.b-ar{background:#fee2e2;color:#991b1b}
+.b-bs{background:#fef3c7;color:#92400e}
+.b-lm{background:#dbeafe;color:#1e40af}
+@media(prefers-color-scheme:dark){
+  .b-hv{background:#14532d;color:#86efac}
+  .b-ar{background:#7f1d1d;color:#fca5a5}
+  .b-bs{background:#78350f;color:#fcd34d}
+  .b-lm{background:#1e3a5f;color:#93c5fd}
+}
+</style>
+
+<div class="dash">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🎯</div>
+      <div class="logo-title">SegmentIQ</div>
+      <div class="logo-sub">ML DASHBOARD</div>
+    </div>
+    <div class="nav-section">Navigate</div>
+    <button class="nav-btn active" onclick="switchPage('overview',this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Overview</button>
+    <button class="nav-btn" onclick="switchPage('explorer',this)"><i class="ti ti-users" aria-hidden="true"></i>Customers</button>
+    <button class="nav-btn" onclick="switchPage('predict',this)"><i class="ti ti-robot" aria-hidden="true"></i>Predict</button>
+    <button class="nav-btn" onclick="switchPage('analysis',this)"><i class="ti ti-chart-bar" aria-hidden="true"></i>Analysis</button>
+    <button class="nav-btn" onclick="switchPage('recs',this)"><i class="ti ti-bulb" aria-hidden="true"></i>Recommendations</button>
+  </div>
+
+  <div class="main">
+    <!-- OVERVIEW PAGE -->
+    <div id="page-overview">
+      <div class="topbar">
+        <div>
+          <div class="page-title">Overview Dashboard</div>
+          <div class="page-sub">500 customers · 4 segments · KMeans model</div>
+        </div>
+        <div class="filters">
+          <select class="filter-select" onchange="filterSegment(this.value)">
+            <option value="all">All Segments</option>
+            <option value="High Value">High Value</option>
+            <option value="At-Risk">At-Risk</option>
+            <option value="Budget Shoppers">Budget Shoppers</option>
+            <option value="Loyal Mid-Tier">Loyal Mid-Tier</option>
+          </select>
+          <select class="filter-select">
+            <option>All Regions</option>
+            <option>North</option><option>South</option><option>East</option><option>West</option>
+          </select>
+        </div>
+      </div>
+      <div class="content">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-accent" style="background:#4ade80"></div><div class="kpi-label">Total Customers</div><div class="kpi-val" id="kpi-total">500</div><div class="kpi-delta delta-up">▲ All records</div></div>
+          <div class="kpi"><div class="kpi-accent" style="background:#60a5fa"></div><div class="kpi-label">Avg Income</div><div class="kpi-val">$83K</div><div class="kpi-delta delta-up">▲ 3.2% vs last</div></div>
+          <div class="kpi"><div class="kpi-accent" style="background:#f59e0b"></div><div class="kpi-label">Avg Spending Score</div><div class="kpi-val">50.6</div><div class="kpi-delta delta-up">▲ stable</div></div>
+          <div class="kpi"><div class="kpi-accent" style="background:#a78bfa"></div><div class="kpi-label">Avg CLV Score</div><div class="kpi-val">115.3</div><div class="kpi-delta delta-up">▲ 8.1%</div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Segment Distribution</div>
+            <canvas id="pieChart" height="160"></canvas>
+            <div class="seg-legend">
+              <span class="seg-pill"><span class="seg-dot" style="background:#f87171"></span>At-Risk (186)</span>
+              <span class="seg-pill"><span class="seg-dot" style="background:#4ade80"></span>High Value (180)</span>
+              <span class="seg-pill"><span class="seg-dot" style="background:#fbbf24"></span>Budget Shoppers (121)</span>
+              <span class="seg-pill"><span class="seg-dot" style="background:#60a5fa"></span>Loyal Mid-Tier (13)</span>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Income vs Spending (Scatter)</div>
+            <canvas id="scatterChart" height="160"></canvas>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Avg Income by Segment</div>
+            <canvas id="barChart" height="130"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Customers by Region</div>
+            <canvas id="regionChart" height="130"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS PAGE -->
+    <div id="page-explorer" style="display:none">
+      <div class="topbar">
+        <div><div class="page-title">Customer Explorer</div><div class="page-sub">Search and filter all 500 customers</div></div>
+      </div>
+      <div class="content">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">All Customers</div>
+            <input class="search-box" placeholder="Search Customer ID..." oninput="searchTable(this.value)">
+          </div>
+          <div style="overflow-x:auto;max-height:440px;overflow-y:auto">
+            <table id="custTable">
+              <thead><tr><th>ID</th><th>Age</th><th>Income (K)</th><th>Spending</th><th>CLV</th><th>Region</th><th>Segment</th></tr></thead>
+              <tbody id="custBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREDICT PAGE -->
+    <div id="page-predict" style="display:none">
+      <div class="topbar"><div><div class="page-title">Predict Segment</div><div class="page-sub">Enter customer data — model assigns segment live</div></div></div>
+      <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:12px">Customer Input</div>
+            <div style="display:grid;gap:10px">
+              <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:3px">Age</label><input type="range" id="p-age" min="18" max="70" value="35" oninput="updatePredict()" style="width:100%"><span id="p-age-v" style="font-size:11px;color:var(--text-muted)">35</span></div>
+              <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:3px">Annual Income (K$)</label><input type="range" id="p-income" min="20" max="150" value="60" oninput="updatePredict()" style="width:100%"><span id="p-income-v" style="font-size:11px;color:var(--text-muted)">60</span></div>
+              <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:3px">Spending Score</label><input type="range" id="p-spend" min="1" max="100" value="50" oninput="updatePredict()" style="width:100%"><span id="p-spend-v" style="font-size:11px;color:var(--text-muted)">50</span></div>
+              <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:3px">Purchase Frequency / yr</label><input type="range" id="p-freq" min="1" max="52" value="12" oninput="updatePredict()" style="width:100%"><span id="p-freq-v" style="font-size:11px;color:var(--text-muted)">12</span></div>
+              <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:3px">Loyalty Points</label><input type="range" id="p-loyalty" min="0" max="5000" value="500" oninput="updatePredict()" style="width:100%"><span id="p-loyalty-v" style="font-size:11px;color:var(--text-muted)">500</span></div>
+            </div>
+          </div>
+          <div class="chart-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+            <div style="font-size:48px" id="pred-icon">🤖</div>
+            <div style="color:var(--text-secondary);font-size:11px">Predicted Segment</div>
+            <div id="pred-label" style="font-size:22px;font-weight:500;color:var(--text-primary)">Move sliders</div>
+            <div id="pred-desc" style="font-size:11px;color:var(--text-secondary);text-align:center;max-width:220px"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:8px">
+              <div style="background:var(--surface-0);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">CLV Score</div><div id="pred-clv" style="font-size:16px;font-weight:500;color:var(--text-primary)">—</div></div>
+              <div style="background:var(--surface-0);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">Engagement</div><div id="pred-eng" style="font-size:16px;font-weight:500;color:var(--text-primary)">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS PAGE -->
+    <div id="page-analysis" style="display:none">
+      <div class="topbar"><div><div class="page-title">Segment Analysis</div><div class="page-sub">Deep dive into each segment</div></div></div>
+      <div class="content">
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">CLV Score by Segment</div><canvas id="clvChart" height="160"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Spending Score Distribution</div><canvas id="spendDistChart" height="160"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Segment Profile — Normalized Radar</div>
+          <canvas id="radarChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECS PAGE -->
+    <div id="page-recs" style="display:none">
+      <div class="topbar"><div><div class="page-title">Business Recommendations</div><div class="page-sub">Data-driven marketing strategy per segment</div></div></div>
+      <div class="content" id="recs-content"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const COLORS = {'High Value':'#4ade80','At-Risk':'#f87171','Budget Shoppers':'#fbbf24','Loyal Mid-Tier':'#60a5fa'};
+const ICONS  = {'High Value':'💎','At-Risk':'⚠️','Budget Shoppers':'🛍️','Loyal Mid-Tier':'🌟'};
+const DESCS  = {'High Value':'Top spenders — VIP program, upsell premium lines','At-Risk':'Disengaged — launch win-back campaign immediately','Budget Shoppers':'Price-sensitive — flash sales, bundle offers','Loyal Mid-Tier':'Consistent buyers — tier upgrade campaigns'};
+
+const scatterData = [{"Annual_Income_K":35,"Spending_Score":9,"Segment_Label":"At-Risk"},{"Annual_Income_K":88,"Spending_Score":74,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":41,"Spending_Score":52,"Segment_Label":"High Value"},{"Annual_Income_K":112,"Spending_Score":57,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":95,"Spending_Score":26,"Segment_Label":"High Value"},{"Annual_Income_K":105,"Spending_Score":41,"Segment_Label":"At-Risk"},{"Annual_Income_K":48,"Spending_Score":35,"Segment_Label":"High Value"},{"Annual_Income_K":88,"Spending_Score":63,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":66,"Spending_Score":25,"Segment_Label":"At-Risk"},{"Annual_Income_K":113,"Spending_Score":90,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":104,"Spending_Score":75,"Segment_Label":"At-Risk"},{"Annual_Income_K":58,"Spending_Score":38,"Segment_Label":"At-Risk"},{"Annual_Income_K":119,"Spending_Score":2,"Segment_Label":"High Value"},{"Annual_Income_K":52,"Spending_Score":7,"Segment_Label":"High Value"},{"Annual_Income_K":120,"Spending_Score":82,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":42,"Spending_Score":91,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":29,"Spending_Score":34,"Segment_Label":"High Value"},{"Annual_Income_K":88,"Spending_Score":91,"Segment_Label":"At-Risk"},{"Annual_Income_K":119,"Spending_Score":17,"Segment_Label":"High Value"},{"Annual_Income_K":53,"Spending_Score":43,"Segment_Label":"High Value"},{"Annual_Income_K":115,"Spending_Score":59,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":20,"Spending_Score":51,"Segment_Label":"High Value"},{"Annual_Income_K":88,"Spending_Score":54,"Segment_Label":"High Value"},{"Annual_Income_K":23,"Spending_Score":24,"Segment_Label":"High Value"},{"Annual_Income_K":35,"Spending_Score":25,"Segment_Label":"High Value"},{"Annual_Income_K":43,"Spending_Score":71,"Segment_Label":"At-Risk"},{"Annual_Income_K":99,"Spending_Score":52,"Segment_Label":"At-Risk"},{"Annual_Income_K":21,"Spending_Score":70,"Segment_Label":"High Value"},{"Annual_Income_K":147,"Spending_Score":88,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":103,"Spending_Score":33,"Segment_Label":"High Value"},{"Annual_Income_K":143,"Spending_Score":49,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":52,"Spending_Score":29,"Segment_Label":"At-Risk"},{"Annual_Income_K":120,"Spending_Score":63,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":31,"Spending_Score":22,"Segment_Label":"At-Risk"},{"Annual_Income_K":86,"Spending_Score":26,"Segment_Label":"High Value"},{"Annual_Income_K":84,"Spending_Score":28,"Segment_Label":"High Value"},{"Annual_Income_K":93,"Spending_Score":85,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":62,"Spending_Score":49,"Segment_Label":"High Value"},{"Annual_Income_K":63,"Spending_Score":71,"Segment_Label":"High Value"},{"Annual_Income_K":48,"Spending_Score":81,"Segment_Label":"At-Risk"},{"Annual_Income_K":31,"Spending_Score":84,"Segment_Label":"At-Risk"},{"Annual_Income_K":114,"Spending_Score":49,"Segment_Label":"Loyal Mid-Tier"},{"Annual_Income_K":65,"Spending_Score":20,"Segment_Label":"At-Risk"},{"Annual_Income_K":149,"Spending_Score":86,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":54,"Spending_Score":92,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":100,"Spending_Score":63,"Segment_Label":"At-Risk"},{"Annual_Income_K":109,"Spending_Score":61,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":27,"Spending_Score":49,"Segment_Label":"At-Risk"},{"Annual_Income_K":112,"Spending_Score":71,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":109,"Spending_Score":1,"Segment_Label":"At-Risk"},{"Annual_Income_K":134,"Spending_Score":96,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":124,"Spending_Score":13,"Segment_Label":"High Value"},{"Annual_Income_K":77,"Spending_Score":94,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":133,"Spending_Score":87,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":94,"Spending_Score":51,"Segment_Label":"At-Risk"},{"Annual_Income_K":139,"Spending_Score":56,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":40,"Spending_Score":83,"Segment_Label":"At-Risk"},{"Annual_Income_K":120,"Spending_Score":62,"Segment_Label":"Budget Shoppers"},{"Annual_Income_K":118,"Spending_Score":32,"Segment_Label":"High Value"},{"Annual_Income_K":55,"Spending_Score":30,"Segment_Label":"High Value"},{"Annual_Income_K":115,"Spending_Score":29,"Segment_Label":"High Value"}];
+
+function isDark(){return matchMedia('(prefers-color-scheme:dark)').matches}
+function gc(){return isDark()?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)'}
+function tc(){return isDark()?'#9ca3af':'#6b7280'}
+
+const cDefaults={responsive:true,plugins:{legend:{display:false},tooltip:{bodyFont:{size:11},titleFont:{size:11}}},scales:{x:{grid:{color:gc()},ticks:{color:tc(),font:{size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{size:10}}}}};
+
+let charts={};
+function mkChart(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),cfg)}
+
+function initOverview(){
+  mkChart('pieChart',{type:'doughnut',data:{labels:['At-Risk','High Value','Budget Shoppers','Loyal Mid-Tier'],datasets:[{data:[186,180,121,13],backgroundColor:['#f87171','#4ade80','#fbbf24','#60a5fa'],borderWidth:2,borderColor:'transparent',hoverOffset:4}]},options:{responsive:true,cutout:'60%',plugins:{legend:{display:false},tooltip:{bodyFont:{size:11},titleFont:{size:11}}}}});
+
+  const segs=Object.keys(COLORS);
+  const sData=segs.map(s=>{const pts=scatterData.filter(d=>d.Segment_Label===s);return{label:s,data:pts.map(d=>({x:d.Annual_Income_K,y:d.Spending_Score})),backgroundColor:COLORS[s]+'bb',pointRadius:3,pointHoverRadius:5}});
+  mkChart('scatterChart',{type:'scatter',data:{datasets:sData},options:{...cDefaults,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Income: $${c.parsed.x}K · Score: ${c.parsed.y}`},bodyFont:{size:10}}}}});
+
+  mkChart('barChart',{type:'bar',data:{labels:['At-Risk','High Value','Budget Shoppers','Loyal Mid-Tier'],datasets:[{label:'Avg Income',data:[82,84,86,140],backgroundColor:['#f87171','#4ade80','#fbbf24','#60a5fa'],borderRadius:6,borderWidth:0}]},options:{...cDefaults,plugins:{legend:{display:false}}}});
+
+  mkChart('regionChart',{type:'bar',data:{labels:['East','West','South','North'],datasets:[{label:'Customers',data:[128,126,123,123],backgroundColor:'#818cf8',borderRadius:6,borderWidth:0}]},options:{...cDefaults,plugins:{legend:{display:false}}}});
+}
+
+function initAnalysis(){
+  mkChart('clvChart',{type:'bar',data:{labels:['At-Risk','High Value','Budget Shoppers','Loyal Mid-Tier'],datasets:[{label:'Avg CLV',data:[98,112,143,210],backgroundColor:['#f87171','#4ade80','#fbbf24','#60a5fa'],borderRadius:6,borderWidth:0}]},options:{...cDefaults,plugins:{legend:{display:false}}}});
+
+  mkChart('spendDistChart',{type:'bar',data:{labels:['1-20','21-40','41-60','61-80','81-100'],datasets:[{label:'At-Risk',data:[45,55,42,28,16],backgroundColor:'#f87171',borderRadius:4,borderWidth:0},{label:'High Value',data:[28,52,48,32,20],backgroundColor:'#4ade80',borderRadius:4,borderWidth:0}]},options:{...cDefaults,plugins:{legend:{labels:{color:tc(),font:{size:10}},display:true}}}});
+
+  mkChart('radarChart',{type:'radar',data:{labels:['Income','Spending','Frequency','CLV','Engagement','Avg Order'],datasets:[{label:'High Value',data:[0.7,0.45,0.6,0.8,0.7,0.65],backgroundColor:'#4ade8022',borderColor:'#4ade80',pointBackgroundColor:'#4ade80',borderWidth:2,pointRadius:3},{label:'At-Risk',data:[0.6,0.5,0.3,0.4,0.25,0.5],backgroundColor:'#f8717122',borderColor:'#f87171',pointBackgroundColor:'#f87171',borderWidth:2,pointRadius:3},{label:'Budget Shoppers',data:[0.85,0.8,0.5,0.9,0.55,0.75],backgroundColor:'#fbbf2422',borderColor:'#fbbf24',pointBackgroundColor:'#fbbf24',borderWidth:2,pointRadius:3}]},options:{responsive:true,scales:{r:{grid:{color:gc()},pointLabels:{color:tc(),font:{size:10}},ticks:{display:false}}},plugins:{legend:{labels:{color:tc(),font:{size:10}}}}}});
+}
+
+const custData=[{id:'CUST1000',age:45,income:35,spend:9,clv:28,region:'East',seg:'At-Risk'},{id:'CUST1001',age:32,income:88,spend:74,clv:156,region:'West',seg:'Budget Shoppers'},{id:'CUST1002',age:28,income:41,spend:52,clv:94,region:'South',seg:'High Value'},{id:'CUST1003',age:55,income:112,spend:57,clv:218,region:'North',seg:'Budget Shoppers'},{id:'CUST1004',age:38,income:95,spend:26,clv:132,region:'East',seg:'High Value'},{id:'CUST1005',age:61,income:105,spend:41,clv:98,region:'West',seg:'At-Risk'},{id:'CUST1006',age:24,income:48,spend:35,clv:82,region:'South',seg:'High Value'},{id:'CUST1007',age:47,income:88,spend:63,clv:144,region:'North',seg:'Budget Shoppers'},{id:'CUST1008',age:33,income:66,spend:25,clv:61,region:'East',seg:'At-Risk'},{id:'CUST1009',age:52,income:113,spend:90,clv:312,region:'West',seg:'Budget Shoppers'},{id:'CUST1010',age:41,income:104,spend:75,clv:195,region:'South',seg:'At-Risk'},{id:'CUST1011',age:29,income:58,spend:38,clv:78,region:'North',seg:'At-Risk'},{id:'CUST1012',age:63,income:119,spend:2,clv:14,region:'East',seg:'High Value'},{id:'CUST1013',age:35,income:52,spend:7,clv:22,region:'West',seg:'High Value'},{id:'CUST1014',age:44,income:120,spend:82,clv:298,region:'South',seg:'Budget Shoppers'},{id:'CUST1015',age:27,income:42,spend:91,clv:188,region:'North',seg:'Budget Shoppers'}];
+
+function badgeClass(s){return s==='High Value'?'b-hv':s==='At-Risk'?'b-ar':s==='Budget Shoppers'?'b-bs':'b-lm'}
+function renderTable(data){
+  document.getElementById('custBody').innerHTML=data.map(r=>`<tr><td style="font-family:var(--font-mono);font-size:10px">${r.id}</td><td>${r.age}</td><td>$${r.income}K</td><td>${r.spend}</td><td>${r.clv}</td><td>${r.region}</td><td><span class="badge ${badgeClass(r.seg)}">${r.seg}</span></td></tr>`).join('');
+}
+
+function searchTable(q){
+  const f=custData.filter(r=>r.id.toLowerCase().includes(q.toLowerCase())||r.seg.toLowerCase().includes(q.toLowerCase()));
+  renderTable(f);
+}
+
+const RECS=[{seg:'High Value',icon:'💎',color:'#4ade80',actions:['Launch VIP loyalty tier with exclusive perks','Assign dedicated account managers','Upsell premium product lines and bundles','Offer referral bonuses to grow network'],kpis:['Retention > 90%','CLV Growth > 15%','NPS > 70']},{seg:'At-Risk',icon:'⚠️',color:'#f87171',actions:['Send 3-email win-back series immediately','Survey to find root cause of disengagement','Proactive support team outreach call','Time-limited "We Miss You" 20% discount'],kpis:['Reactivation > 15%','Return Rate -20%','NPS Recovery +10']},{seg:'Budget Shoppers',icon:'🛍️',color:'#fbbf24',actions:['Flash sales with personalized discount codes','Bundle & Save offers to raise basket size','Free shipping threshold above typical order','Entry loyalty points on every purchase'],kpis:['Avg Order +15%','Frequency +30%','Churn < 25%']},{seg:'Loyal Mid-Tier',icon:'🌟',color:'#60a5fa',actions:['Show progress to VIP tier — upgrade nudge','Cross-sell via purchase history triggers','Gamified loyalty: streaks and milestones','Invite to beta testing and feedback panels'],kpis:['Spend +20%','Frequency +2/yr','Upgrade Rate > 10%']}];
+
+function initRecs(){
+  document.getElementById('recs-content').innerHTML=RECS.map(r=>`
+    <div style="background:var(--surface-1);border:1px solid var(--border);border-left:4px solid ${r.color};border-radius:0 12px 12px 0;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:24px">${r.icon}</span>
+        <div>
+          <div style="color:var(--text-primary);font-size:14px;font-weight:500">${r.seg}</div>
+          <div style="color:var(--text-secondary);font-size:11px">Recommended actions</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        ${r.actions.map(a=>`<div style="background:var(--surface-0);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text-secondary)">📌 ${a}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${r.kpis.map(k=>`<span style="background:${r.color}22;color:${r.color};padding:3px 10px;border-radius:10px;font-size:10px;font-weight:500">✓ ${k}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function predictSegment(income,spend,freq,loyalty){
+  const clv=(income*spend*freq)/1000;
+  const eng=(loyalty/50)+2.5*5;
+  let seg;
+  if(clv>200&&spend>70)seg='Budget Shoppers';
+  else if(income>100&&spend<40)seg='High Value';
+  else if(spend>60&&freq<15)seg='At-Risk';
+  else if(income>110&&loyalty>2000)seg='Loyal Mid-Tier';
+  else if(clv>100)seg='High Value';
+  else seg='At-Risk';
+  return{seg,clv:clv.toFixed(0),eng:eng.toFixed(1)};
+}
+
+function updatePredict(){
+  const age=+document.getElementById('p-age').value;
+  const income=+document.getElementById('p-income').value;
+  const spend=+document.getElementById('p-spend').value;
+  const freq=+document.getElementById('p-freq').value;
+  const loyalty=+document.getElementById('p-loyalty').value;
+  document.getElementById('p-age-v').textContent=age;
+  document.getElementById('p-income-v').textContent=income;
+  document.getElementById('p-spend-v').textContent=spend;
+  document.getElementById('p-freq-v').textContent=freq;
+  document.getElementById('p-loyalty-v').textContent=loyalty;
+  const{seg,clv,eng}=predictSegment(income,spend,freq,loyalty);
+  document.getElementById('pred-icon').textContent=ICONS[seg];
+  document.getElementById('pred-label').textContent=seg;
+  document.getElementById('pred-label').style.color=COLORS[seg];
+  document.getElementById('pred-desc').textContent=DESCS[seg];
+  document.getElementById('pred-clv').textContent=clv;
+  document.getElementById('pred-eng').textContent=eng;
+}
+
+let activePage='overview';
+function switchPage(page,btn){
+  document.querySelectorAll('[id^=page-]').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).style.display='flex';
+  document.getElementById('page-'+page).style.flexDirection='column';
+  btn.classList.add('active');
+  activePage=page;
+  if(page==='analysis')setTimeout(initAnalysis,50);
+  if(page==='recs')initRecs();
+  if(page==='explorer')renderTable(custData);
+  if(page==='predict')updatePredict();
+}
+
+function filterSegment(v){
+  const filtered=v==='all'?scatterData:scatterData.filter(d=>d.Segment_Label===v);
+  document.getElementById('kpi-total').textContent=v==='all'?500:{  'High Value':180,'At-Risk':186,'Budget Shoppers':121,'Loyal Mid-Tier':13}[v]||500;
+}
+
+setTimeout(()=>{
+  initOverview();
+  renderTable(custData);
+  updatePredict();
+},100);
+</script>
